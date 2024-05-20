@@ -9,11 +9,17 @@ from sqlalchemy.orm import relationship, DeclarativeBase, Mapped, mapped_column
 from sqlalchemy import Integer, String, Text
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
+import os
+from dotenv import load_dotenv
 # Import forms from the forms.py
 from forms import CreatePostForm, RegisterForm, LoginForm, CommentForm
 
+# Loading environment variables
+load_dotenv()
+
+
 app = Flask(__name__)
-app.config['SECRET_KEY'] = '8BYkEfBA6O6donzWlSihBXox7C0sKR6b'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
 ckeditor = CKEditor(app)
 Bootstrap5(app)
 
@@ -43,7 +49,7 @@ class Base(DeclarativeBase):
     pass
 
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///posts.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('SQLALCHEMY_DATABASE_URI')
 db = SQLAlchemy(model_class=Base)
 db.init_app(app)
 
@@ -101,8 +107,14 @@ def admin_only(f):
             return abort(403)
         # Otherwise, continue with the route function
         return f(*args, **kwargs)
-
     return decorated_function
+
+
+@app.route('/')
+def get_all_posts():
+    result = db.session.execute(db.select(BlogPost))
+    posts = result.scalars().all()
+    return render_template("index.html", all_posts=posts, logged_in=current_user.is_authenticated)
 
 
 @app.route('/register', methods=["GET", "POST"])
@@ -169,13 +181,6 @@ def logout():
     return redirect(url_for('get_all_posts'))
 
 
-@app.route('/')
-def get_all_posts():
-    result = db.session.execute(db.select(BlogPost))
-    posts = result.scalars().all()
-    return render_template("index.html", all_posts=posts, logged_in=current_user.is_authenticated)
-
-
 @app.route("/post/<int:post_id>", methods=["GET", "POST"])
 def show_post(post_id):
     requested_post = db.get_or_404(BlogPost, post_id)
@@ -195,8 +200,8 @@ def show_post(post_id):
         db.session.add(new_comment)
         db.session.commit()
         return redirect(url_for("get_all_posts"))
-    return render_template("post.html", post=requested_post, logged_in=current_user.is_authenticated, form=form,
-                           comments=comments)
+    return render_template("post.html", post=requested_post, logged_in=current_user.is_authenticated,
+                           form=form, comments=comments)
 
 
 @app.route("/new-post", methods=["GET", "POST"])
@@ -260,4 +265,4 @@ def contact():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5002)
+    app.run(debug=False)
