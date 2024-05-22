@@ -2,7 +2,7 @@
 Welcome to my Flask Blog Website repository! This project is a demonstration of a simple blog website built using Flask, a lightweight and flexible web framework for Python. 
 
 ## Overview
-The website showcases various functionalities and features of Flask, including:
+The blog site is designed using a demo bootstrap theme. The website showcases various functionalities and features of Flask, including:
 
 - ***Jinja Templating:*** Utilizing Flask's built-in Jinja templating engine for dynamic HTML rendering.
 - ***Authentication:*** Implementing user authentication and authorization using Flask-Login.
